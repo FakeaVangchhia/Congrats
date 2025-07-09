@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Congrat Hruaite!</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f7eaff 0%, #e0c3fc 100%);
+      height: 100vh;
+      width: 100vw;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+    }
+    .center {
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+      width: 100vw;
+      padding: 48px 32px 48px 32px; /* Increased padding */
+      box-sizing: border-box;
+      background: rgba(255,255,255,0.12);
+      border-radius: 32px;
+      box-shadow: 0 8px 32px rgba(160,32,240,0.08);
+    }
+    .congrats {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #a020f0;
+      text-shadow: 2px 2px 8px #fff, 0 0 20px #a020f0;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+    .subtext {
+      font-size: 1.5rem;
+      color: #6a1b9a;
+      text-shadow: 1px 1px 4px #fff;
+      margin-top: 8px;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="center">
+    <div class="congrats">🎉 Congrat Hruitea! 🎉</div>
+    <div class="subtext">I kal zelna turah duhsakna kan hlan a che.</div>
+  </div>
+  <script>
+    // Balloons
+    const balloonCount = 14;
+    const balloons = [];
+    const colors = [
+      '#ff6f91', '#f9f871', '#6fcf97', '#56ccf2', '#bb6bd9', '#f67280', '#f8b195', '#f7cac9', '#b5ead7', '#ffdac1', '#c7ceea', '#ffb7b2', '#b2f7ef', '#f6abb6'
+    ];
+    // Particles
+    const particleCount = 50;
+    const particles = [];
+
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    function randomColor() {
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function createBalloon() {
+      return {
+        x: Math.random() * (W - 60) + 30,
+        y: H + Math.random() * 200,
+        r: 30 + Math.random() * 10,
+        h: 80 + Math.random() * 20,
+        color: randomColor(),
+        speed: 1 + Math.random() * 1.5,
+        sway: Math.random() * 2 + 1,
+        swayDir: Math.random() > 0.5 ? 1 : -1,
+        swayPhase: Math.random() * Math.PI * 2,
+      };
+    }
+
+    function createParticle() {
+      return {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 5 + Math.random() * 7,
+        color: randomColor(),
+        alpha: 0.7 + Math.random() * 0.3,
+        dx: (Math.random() - 0.5) * 1.5,
+        dy: (Math.random() - 0.5) * 1.5,
+        life: 80 + Math.random() * 60,
+        age: 0,
+      };
+    }
+
+    for (let i = 0; i < balloonCount; i++) {
+      balloons.push(createBalloon());
+    }
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(createParticle());
+    }
+
+    function drawBalloon(b) {
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath();
+      ctx.ellipse(b.x, b.y, b.r, b.h / 2, 0, 0, 2 * Math.PI);
+      ctx.fillStyle = b.color;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      // String
+      ctx.beginPath();
+      ctx.moveTo(b.x, b.y + b.h / 2);
+      ctx.lineTo(b.x, b.y + b.h / 2 + 30);
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawParticle(p) {
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, 2 * Math.PI);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, W, H);
+      // Balloons
+      for (let b of balloons) {
+        b.y -= b.speed;
+        b.x += Math.sin(b.swayPhase + b.y / 40) * b.sway * b.swayDir;
+        if (b.y + b.h / 2 < -40) {
+          // Reset balloon
+          Object.assign(b, createBalloon());
+          b.y = H + 40;
+        }
+        drawBalloon(b);
+      }
+      // Particles
+      for (let p of particles) {
+        p.x += p.dx;
+        p.y += p.dy;
+        p.age++;
+        if (p.x < 0 || p.x > W || p.y < 0 || p.y > H || p.age > p.life) {
+          Object.assign(p, createParticle());
+          p.x = Math.random() * W;
+          p.y = Math.random() * H;
+        }
+        drawParticle(p);
+      }
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+    });
+  </script>
+</body>
+</html> 
